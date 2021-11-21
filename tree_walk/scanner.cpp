@@ -59,7 +59,7 @@ namespace lox
         return true;
     }
 
-    void scanner::add_token(token_type type, std::shared_ptr<object_base> value) {
+    void scanner::add_token(token_type type, object value) {
                 token token;
                 token.type = type;
                 token.lexeme = type != token_type::END_OF_FIELD ? 
@@ -72,8 +72,7 @@ namespace lox
 
     void scanner::add_token(token_type type)
     {
-        auto lit = std::make_shared<object<std::nullptr_t>>();
-        add_token(type, lit);
+        add_token(type, object(nullptr));
     }
 
     void scanner::scan_token()
@@ -189,9 +188,8 @@ namespace lox
         // trim the surrounding quotes
         int start = m_start + 1;
         int length = m_current - start;
-
-        auto value = std::make_shared<object<std::string>>();
-        value->m_value = m_source.substr(start, length - 1);
+        
+        object value(m_source.substr(start, length - 1));
         add_token(token_type::STRING, value);
     }
 
@@ -211,9 +209,8 @@ namespace lox
         }
 
         int length = m_current - m_start;
-        auto value = std::make_shared<object<double>>();
-        value->m_value = std::stod(m_source.substr(m_start, length));
-        add_token(token_type::NUMBER, value);
+        double value = std::stod(m_source.substr(m_start, length));
+        add_token(token_type::NUMBER, object(value));
     }
 
     void scanner::scan_identifier()

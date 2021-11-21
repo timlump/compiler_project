@@ -20,7 +20,7 @@ namespace lox {
             char peek_next();
             bool match(char expected);
 
-            void add_token(token_type type, std::shared_ptr<object_base> value); 
+            void add_token(token_type type, object value); 
 
             void add_token(token_type type);
 

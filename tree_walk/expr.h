@@ -12,16 +12,16 @@ namespace lox {
     class visitor
     {
         public:
-            virtual std::shared_ptr<object_base> visit_binary(binary_expr*) = 0;
-            virtual std::shared_ptr<object_base> visit_grouping(grouping_expr*) = 0;
-            virtual std::shared_ptr<object_base> visit_literal(literal_expr*) = 0;
-            virtual std::shared_ptr<object_base> visit_unary(unary_expr*) = 0;
+            virtual object visit_binary(binary_expr*) = 0;
+            virtual object visit_grouping(grouping_expr*) = 0;
+            virtual object visit_literal(literal_expr*) = 0;
+            virtual object visit_unary(unary_expr*) = 0;
     };
 
     class expr
     {
         public:
-            virtual std::shared_ptr<object_base> accept(visitor*) = 0;
+            virtual object accept(visitor*) = 0;
     };
 
 
@@ -35,7 +35,7 @@ namespace lox {
                 m_right = right;
             }
 
-            std::shared_ptr<object_base> accept(visitor* visitor) override
+            object accept(visitor* visitor) override
             {
                 return visitor->visit_binary(this);
             }
@@ -52,7 +52,7 @@ namespace lox {
                 m_expression = expression;
             }
 
-            std::shared_ptr<object_base>  accept(visitor* visitor) override
+            object accept(visitor* visitor) override
             {
                 return visitor->visit_grouping(this);
             }
@@ -63,17 +63,17 @@ namespace lox {
     class literal_expr : public expr
     {
         public:
-            literal_expr(std::shared_ptr<object_base> value) 
+            literal_expr(object value) 
             {
                 m_value = value;
             }
 
-            std::shared_ptr<object_base> accept(visitor* visitor) override
+            object accept(visitor* visitor) override
             {
                 return visitor->visit_literal(this);
             }
 
-            std::shared_ptr<object_base> m_value;
+            object m_value = object(nullptr);
     };
 
     class unary_expr : public expr
@@ -85,7 +85,7 @@ namespace lox {
                 m_right = right;
             }
 
-            std::shared_ptr<object_base> accept(visitor* visitor) override
+            object accept(visitor* visitor) override
             {
                 return visitor->visit_unary(this);
             }

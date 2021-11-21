@@ -1,8 +1,7 @@
 #pragma once
 
 #include <string>
-#include <iostream>
-#include <memory>
+#include <exception>
 
 namespace lox {
     enum class token_type {
@@ -24,142 +23,64 @@ namespace lox {
         END_OF_FIELD
     };
 
-    class object_base
+    class object
     {
         public:
-            virtual std::string to_string() = 0;
-    };
+            object(std::nullptr_t);
+            object(bool value);
+            object(double value);
+            object(std::string value);
 
-    template<class T>
-    class object : public object_base
-    {
-        public:
-            object() {};
-            object(T value) : m_value(value) {};
-            T m_value;
-            std::string to_string() override {
+            enum class object_type {nil, boolean, number, text} m_type = object_type::nil;
 
-                return std::to_string(m_value);
-            }
-    };
+            bool m_boolean_value;
+            double m_number_value;
+            std::string m_text_value;
 
-    template<>
-    class object<std::string> : public object_base
-    {
-        public:
-            object() {};
-            object(std::string value) : m_value(value) {};
-            std::string m_value;
-            std::string to_string() override {
-                return m_value;
-            }
-    };
+            object operator!();
 
-    template<>
-    class object<std::nullptr_t> : public object_base
-    {
-        public:
-            std::string to_string() override {
-                return "nil";
-            }
-    };
+            object operator-();
 
-    template<>
-    class object<bool> : public object_base
-    {
-        public:
-            object() {};
-            object(bool value) : m_value(value) {};
-            bool m_value;
-            std::string to_string() override {
-                return m_value ? "true" : "false";
-            }
+            object operator>(const object& right);
 
-            object<bool> operator!()
-            {
-                object<bool> result(!m_value);
-                return result;
-            }
-    };
+            object operator>=(const object& right);
 
-    template<>
-    class object<double> : public object_base
-    {
-        public:
-            object() {};
-            object(double value) : m_value(value) {};
-            double m_value;
-            std::string to_string() override {
-                return std::to_string(m_value);
-            }
+            object operator<(const object& right);
 
-            object<double> operator-()
-            {
-                object<double> result(-m_value);
-                return result;
-            }
+            object operator<=(const object& right);
 
-            object<double> operator+(const object<double>& right)
-            {
-                object<double> result(m_value + right.m_value);
-                return result;
-            }
+            object operator==(const object& right);
 
-            object<double> operator-(const object<double>& right)
-            {
-                object<double> result(m_value - right.m_value);
-                return result;
-            }
+            object operator!=(const object& right);
 
-            object<double> operator*(const object<double>& right)
-            {
-                object<double> result(m_value * right.m_value);
-                return result;
-            }
+            object operator-(const object& right);
 
-            object<double> operator/(const object<double>& right)
-            {
-                object<double> result(m_value / right.m_value);
-                return result;
-            }
+            object operator+(const object& right);
 
+            object operator*(const object& right);
 
+            object operator/(const object& right);
+
+            std::string to_string();
     };
 
     struct token {
         token_type type;
         std::string lexeme;
-        std::shared_ptr<object_base> value;
+        object value = object(nullptr);
         int line;
     };
 
-    template <class T>
-    static std::shared_ptr<object<T>> cast_to(std::shared_ptr<object_base> obj)
+    class lox_runtime_exception : public std::exception
     {
-        auto result = dynamic_cast<std::shared_ptr<object<T>>>(obj);
-        if (result == nullptr) {
-            throw std::bad_cast();
-        }
-        else {
-            return std::shared_ptr<object<T>>(result->m_value);
-        }
-    }
+        public:
+            lox_runtime_exception(token token, std::string message)
+            {
+                m_token = token;
+                m_message = message;
+            }
 
-    template <class T>
-    static std::shared_ptr<object<T>> make()
-    {
-        return std::make_shared<object<T>>();
-    }
-
-    template <class T>
-    static std::shared_ptr<object<T>> make(T value)
-    {
-        return std::make_shared<object<T>>(value);
-    }
-
-    template <class T>
-    static std::shared_ptr<object<T>> make(object<T> value)
-    {
-        return make<T>(value->m_value);
-    }
+            token m_token;
+            std::string m_message;
+    };
 }

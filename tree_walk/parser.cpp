@@ -81,22 +81,17 @@ namespace lox
     {
         if (match({token_type::FALSE}))
         {
-            auto lit = std::make_shared<object<bool>>();
-            lit->m_value = false;
-            return std::make_shared<literal_expr>(lit);
+            return std::make_shared<literal_expr>(object(false));
         }
 
         if (match({token_type::TRUE}))
         {
-            auto lit = std::make_shared<object<bool>>();
-            lit->m_value = true;
-            return std::make_shared<literal_expr>(lit);
+            return std::make_shared<literal_expr>(object(true));
         }
 
         if (match({token_type::NIL}))
         {
-            auto lit = std::make_shared<object<std::nullptr_t>>();
-            return std::make_shared<literal_expr>(lit);
+            return std::make_shared<literal_expr>(object(nullptr));
         }
 
         if (match({token_type::NUMBER, token_type::STRING})) {
