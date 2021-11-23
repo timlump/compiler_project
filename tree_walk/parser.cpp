@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "tree_walk.h"
+#include <iostream>
 
 namespace lox
 {

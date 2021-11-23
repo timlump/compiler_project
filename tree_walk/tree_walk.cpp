@@ -12,6 +12,8 @@
 
 namespace lox {    
     bool tree_walk::had_error = false;
+    bool tree_walk::had_runtime_error = false;
+    interpreter* tree_walk::m_interpreter = nullptr;
 
     void tree_walk::run(std::string source) {
         scanner scanner(source);
@@ -23,10 +25,10 @@ namespace lox {
             return;
         }
         
-        ast_printer printer;
-        auto result = printer.print(exp.get());
-
-        std::cout << result << std::endl;
+        if (m_interpreter == nullptr) {
+            m_interpreter = new interpreter();
+        }
+        m_interpreter->interpret(exp.get());
     }
 
     void tree_walk::run_prompt() {
@@ -58,7 +60,7 @@ namespace lox {
 
             tree_walk::run(script);
 
-            if (had_error) {
+            if (had_error || had_runtime_error) {
                 // kill the script - we don't want a script full of errors to proceed
                 throw std::runtime_error("Fatal Error");
             }
@@ -77,6 +79,12 @@ namespace lox {
         else {
             tree_walk::report(token.line, " at '" + token.lexeme + "'", message);
         }
+    }
+
+    void tree_walk::runtime_error(const lox_runtime_exception& e)
+    {
+        std::cerr << e.m_message << std::endl << "[line " << e.m_token.line << "]" << std::endl;
+        tree_walk::had_runtime_error = true; 
     }
 
     void tree_walk::report(int line, std::string where, std::string message) {

@@ -1,5 +1,6 @@
 #include "token.h"
 #include <iostream>
+#include <sstream>
 
 namespace lox
 {
@@ -43,6 +44,8 @@ namespace lox
             {
                 result = m_boolean_value;
             } break;
+            default:
+                result = true;
         }
 
         return object(!result);
@@ -117,18 +120,18 @@ namespace lox
     object object::operator==(const object& right)
     {
         if (m_type != right.m_type) {
-            return false;
+            return object(false);
         }
 
         switch (m_type) {
             case object_type::number:
-                return m_number_value == right.m_number_value;
+                return object(m_number_value == right.m_number_value);
             case object_type::boolean:
-                return m_boolean_value == m_boolean_value;
+                return object(m_boolean_value == right.m_boolean_value);
             case object_type::text:
-                return m_text_value == m_text_value;
+                return object(m_text_value == right.m_text_value);
             case object_type::nil:
-                return true;
+                return object(true);
             // should be unreachable
             default:
                 throw std::logic_error(UNSUPPORTED_MSG);
@@ -137,7 +140,7 @@ namespace lox
 
     object object::operator!=(const object& right)
     {
-        return !(*this==right);
+        return !((*this)==right);
     }
 
     object object::operator-(const object& right)
@@ -205,7 +208,11 @@ namespace lox
             case object_type::boolean:
                 return m_boolean_value ? "true" : "false";
             case object_type::number:
-                return std::to_string(m_number_value);
+            {
+                std::stringstream stream;
+                stream << m_number_value;
+                return stream.str();
+            } break;
             case object_type::text:
                 return m_text_value;
             default:

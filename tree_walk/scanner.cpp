@@ -47,7 +47,7 @@ namespace lox
     }
 
     bool scanner::match(char expected) {
-        if (not is_at_end()) {
+        if (is_at_end()) {
             return false;
         }
 
@@ -155,10 +155,10 @@ namespace lox
                 break;
 
             default:
-                if (std::isdigit(c)) {
+                if (is_digit(c)) {
                     scan_number();
                 }
-                else if (std::isalpha(c)) {
+                else if (is_alpha(c)) {
                     scan_identifier();
                 }
                 else {
@@ -194,16 +194,16 @@ namespace lox
     }
 
     void scanner::scan_number() {
-        while(std::isdigit(peek())) {
+        while(is_digit(peek())) {
             advance();
         }
 
         // look for the fractional part
-        if (peek() == '.' && std::isdigit(peek_next())) {
+        if (peek() == '.' && is_digit(peek_next())) {
             // consume the '.'
             advance();
 
-            while (std::isdigit(peek())) {
+            while (is_digit(peek())) {
                 advance();
             }
         }
@@ -215,19 +215,34 @@ namespace lox
 
     void scanner::scan_identifier()
     {
-        while(std::isalpha(peek()) || std::isdigit(peek())) {
+        while(is_alphanumeric(peek())) {
             advance();
         }
 
         token_type type = token_type::IDENTIFIER;
-
-        std::string text = m_source.substr(m_start, m_start - m_current);
+        int length = m_current - m_start;
+        std::string text = m_source.substr(m_start, length);
         auto find_iter = KEYWORDS.find(text);
         if (find_iter != KEYWORDS.end()) {
             type = find_iter->second;
         }
 
         add_token(type);
+    }
+
+    bool scanner::is_alpha(char c)
+    {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    }
+
+    bool scanner::is_digit(char c)
+    {
+        return c >= '0' && c <= '9';
+    }
+
+    bool scanner::is_alphanumeric(char c)
+    {
+        return is_alpha(c) || is_digit(c);
     }
 
     const std::map<std::string, token_type> scanner::KEYWORDS = {

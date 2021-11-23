@@ -29,6 +29,10 @@ namespace lox {
             void scan_number();
             void scan_identifier();
 
+            bool is_digit(char c);
+            bool is_alpha(char c);
+            bool is_alphanumeric(char c);
+
             std::string m_source;
             std::vector<token> m_tokens;
             

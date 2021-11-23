@@ -11,6 +11,8 @@ namespace lox
             object visit_literal(literal_expr*) override;
             object visit_unary(unary_expr*) override;
 
+            void interpret(expr* expression);
+
         private:
             object evaluate(expr* expr);
     };

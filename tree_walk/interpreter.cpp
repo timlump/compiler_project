@@ -1,4 +1,6 @@
 #include "interpeter.h"
+#include "tree_walk.h"
+#include <iostream>
 
 namespace lox
 {
@@ -21,12 +23,17 @@ namespace lox
                     return left != right;
                 case token_type::EQUAL_EQUAL:
                     return left == right;
+                case token_type::PLUS:
+                    return left + right;
                 case token_type::MINUS:
                     return left - right;
                 case token_type::SLASH:
                     return left / right;
                 case token_type::STAR:
                     return left * right;
+                default:
+                    // not supported yet
+                    break;
             }
 
             return object(nullptr);
@@ -39,7 +46,7 @@ namespace lox
 
     object interpreter::visit_grouping(grouping_expr* expr)
     {
-        return evaluate(expr);
+        return evaluate(expr->m_expression.get());
     }
 
     object interpreter::visit_literal(literal_expr* expr)
@@ -56,10 +63,23 @@ namespace lox
 
             case token_type::MINUS:
                 return -right;
-        }
 
-        return object(nullptr);
-        
+            default:
+                return object(nullptr);
+        }
+    }
+
+    void interpreter::interpret(expr* expr)
+    {
+        try
+        {
+            object value = evaluate(expr);
+            std::cout << value.to_string() << std::endl;
+        }
+        catch(const lox_runtime_exception& e)
+        {
+            tree_walk::runtime_error(e);
+        }
     }
 
     object interpreter::evaluate(expr* expr)
