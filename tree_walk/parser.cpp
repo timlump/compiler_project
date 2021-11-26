@@ -8,14 +8,36 @@ namespace lox
         m_tokens = tokens;
     }
 
-    std::shared_ptr<expr> parser::parse()
+    std::vector<std::shared_ptr<stmt>> parser::parse()
     {
-        try {
-            return expression();
+        std::vector<std::shared_ptr<stmt>> statements;
+        while (not is_at_end()) {
+            statements.push_back(statement());
         }
-        catch (std::runtime_error& e) {
-            return nullptr;
+        return statements;
+    }
+
+    std::shared_ptr<stmt> parser::statement()
+    {
+        if (match({token_type::PRINT})) {
+            return print_statement();
         }
+
+        return expr_statement();
+    }
+    
+    std::shared_ptr<stmt> parser::expr_statement()
+    {
+        auto exp = expression();
+        consume(token_type::SEMICOLON, "Expect ';' after expression.");
+        return std::make_shared<expression_stmt>(exp);
+    }
+    
+    std::shared_ptr<stmt> parser::print_statement()
+    {
+        auto exp = expression();
+        consume(token_type::SEMICOLON, "Expect ';' after expression.");
+        return std::make_shared<print_stmt>(exp);
     }
 
     std::shared_ptr<expr> parser::expression()
@@ -147,7 +169,7 @@ namespace lox
 
     bool parser::is_at_end()
     {
-        return peek().type == token_type::END_OF_FIELD;
+        return peek().type == token_type::END_OF_FILE;
     }
 
     // consume all tokens until we hit the end of a statement

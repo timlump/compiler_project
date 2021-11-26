@@ -19,7 +19,7 @@ namespace lox {
         scanner scanner(source);
         auto tokens = scanner.scan_tokens();
         parser psr(tokens);
-        std::shared_ptr<expr> exp = psr.parse();
+        auto statements = psr.parse();
 
         if (tree_walk::had_error){
             return;
@@ -28,7 +28,7 @@ namespace lox {
         if (m_interpreter == nullptr) {
             m_interpreter = new interpreter();
         }
-        m_interpreter->interpret(exp.get());
+        m_interpreter->interpret(statements);
     }
 
     void tree_walk::run_prompt() {
@@ -73,7 +73,7 @@ namespace lox {
 
     void tree_walk::error(token token, std::string message)
     {
-        if (token.type == token_type::END_OF_FIELD) {
+        if (token.type == token_type::END_OF_FILE) {
             tree_walk::report(token.line, " at end", message);
         }
         else {

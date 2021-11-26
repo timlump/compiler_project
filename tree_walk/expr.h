@@ -9,7 +9,7 @@ namespace lox {
     class literal_expr;
     class unary_expr;
 
-    class visitor
+    class expr_visitor
     {
         public:
             virtual object visit_binary(binary_expr*) = 0;
@@ -21,7 +21,7 @@ namespace lox {
     class expr
     {
         public:
-            virtual object accept(visitor*) = 0;
+            virtual object accept(expr_visitor*) = 0;
     };
 
 
@@ -35,7 +35,7 @@ namespace lox {
                 m_right = right;
             }
 
-            object accept(visitor* visitor) override
+            object accept(expr_visitor* visitor) override
             {
                 return visitor->visit_binary(this);
             }
@@ -52,7 +52,7 @@ namespace lox {
                 m_expression = expression;
             }
 
-            object accept(visitor* visitor) override
+            object accept(expr_visitor* visitor) override
             {
                 return visitor->visit_grouping(this);
             }
@@ -68,7 +68,7 @@ namespace lox {
                 m_value = value;
             }
 
-            object accept(visitor* visitor) override
+            object accept(expr_visitor* visitor) override
             {
                 return visitor->visit_literal(this);
             }
@@ -85,7 +85,7 @@ namespace lox {
                 m_right = right;
             }
 
-            object accept(visitor* visitor) override
+            object accept(expr_visitor* visitor) override
             {
                 return visitor->visit_unary(this);
             }

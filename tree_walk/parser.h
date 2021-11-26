@@ -4,6 +4,7 @@
 #include <exception>
 #include "token.h"
 #include "expr.h"
+#include "stmt.h"
 
 namespace lox
 {
@@ -11,9 +12,17 @@ namespace lox
     {
         public:
             parser(std::vector<token> tokens);
-            std::shared_ptr<expr> parse();
+            std::vector<std::shared_ptr<stmt>> parse();
 
         private:
+
+            // statement -> expr_stmt | print_stmt
+            std::shared_ptr<stmt> statement();
+            // expr_statement -> expression ";"
+            std::shared_ptr<stmt> expr_statement();
+            // print_statement -> "print" expression ";"
+            std::shared_ptr<stmt> print_statement();
+
             // expression -> equality
             std::shared_ptr<expr> expression();
             // equality -> comparison ( ("!=" | "==") comparison )*

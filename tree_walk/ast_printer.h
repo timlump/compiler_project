@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 
-class ast_printer : public lox::visitor
+class ast_printer : public lox::expr_visitor
 {
     public:
         std::string print(lox::expr* expr)

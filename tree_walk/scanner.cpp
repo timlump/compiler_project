@@ -15,7 +15,7 @@ namespace lox
             scan_token();
         }
 
-        add_token(token_type::END_OF_FIELD);
+        add_token(token_type::END_OF_FILE);
         return m_tokens;
     }
 
@@ -62,7 +62,7 @@ namespace lox
     void scanner::add_token(token_type type, object value) {
                 token token;
                 token.type = type;
-                token.lexeme = type != token_type::END_OF_FIELD ? 
+                token.lexeme = type != token_type::END_OF_FILE ? 
                     m_source.substr(m_start,m_current-m_start) : "";
                 token.line =  m_line;
                 token.value = value;

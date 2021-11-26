@@ -69,12 +69,24 @@ namespace lox
         }
     }
 
-    void interpreter::interpret(expr* expr)
+    void interpreter::visit_print(print_stmt* statement)
+    {
+        evaluate(statement->m_expression.get());
+    }
+
+    void interpreter::visit_expression(expression_stmt* statement)
+    {
+        auto value = evaluate(statement->m_expression.get());
+        std::cout << value.to_string() << std::endl;
+    }
+
+    void interpreter::interpret(std::vector<std::shared_ptr<stmt>> statements)
     {
         try
         {
-            object value = evaluate(expr);
-            std::cout << value.to_string() << std::endl;
+            for (auto statement : statements) {
+                execute(statement.get());
+            }
         }
         catch(const lox_runtime_exception& e)
         {
@@ -85,5 +97,10 @@ namespace lox
     object interpreter::evaluate(expr* expr)
     {
         return expr->accept(this);
+    }
+
+    void interpreter::execute(stmt* statement)
+    {
+        statement->accept(this);
     }
 }
