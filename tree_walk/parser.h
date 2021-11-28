@@ -20,7 +20,9 @@ namespace lox
             // var_declaration -> "var" IDENTIFER ( "=" expression )? ";"
             std::shared_ptr<stmt> var_declaration();
 
-            // statement -> expr_stmt | print_statement | block | if_statement | while_statement
+            // statement -> expr_stmt | print_statement |
+            //              block | if_statement | while_statement |
+            //              for_statement
             std::shared_ptr<stmt> statement();
             // block -> "{" declaration* "}"
             std::vector<std::shared_ptr<stmt>> block();
@@ -33,6 +35,11 @@ namespace lox
             std::shared_ptr<stmt> print_statement();
             // while_statement -> "while" "(" expression ")" statement
             std::shared_ptr<stmt> while_statement();
+
+            // for_statement -> "for" "(" (var_declaration | expr_statement ";" )
+            //                  expression? ";"
+            //                  expression? ")" statement
+            std::shared_ptr<stmt> for_statement();
 
             // expression -> assignment
             std::shared_ptr<expr> expression();

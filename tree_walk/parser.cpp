@@ -45,6 +45,10 @@ namespace lox
 
     std::shared_ptr<stmt> parser::statement()
     {
+        if (match({token_type::FOR})) {
+            return for_statement();
+        }
+
         if (match({token_type::IF})) {
             return if_statement();
         }
@@ -115,6 +119,61 @@ namespace lox
         return std::make_shared<while_stmt>(condition, body);
     }
 
+    std::shared_ptr<stmt> parser::for_statement()
+    {
+        consume(token_type::LEFT_PAREN, "Expect '(' after 'for'.");
+
+        std::shared_ptr<stmt> initializer;
+        if (match({token_type::SEMICOLON})) {
+            initializer = nullptr;
+        }
+        else if (match({token_type::VAR})) {
+            initializer = var_declaration();
+        }
+        else {
+            initializer = expr_statement();
+        }
+
+        std::shared_ptr<expr> condition = nullptr;
+        if (not check(token_type::SEMICOLON)) {
+            condition = expression();
+        }
+        consume(token_type::SEMICOLON, "Expect ';' after loop condition.");
+
+        std::shared_ptr<expr> increment = nullptr;
+        if (not check(token_type::RIGHT_PAREN)) {
+            increment = expression();
+        }
+
+        consume(token_type::RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        auto body = statement();
+
+        // now we synthesize a for loop out a while loop - aka desugaring
+
+        if (increment) {
+            std::vector<std::shared_ptr<stmt>> statements;
+            statements.push_back(body);
+            statements.push_back(std::make_shared<expression_stmt>(increment));
+            body = std::make_shared<block_stmt>(statements);
+        }
+
+        if (condition == nullptr) {
+            condition = std::make_shared<literal_expr>(true);
+        }
+        body = std::make_shared<while_stmt>(condition, body);
+
+        if (initializer) {
+            std::vector<std::shared_ptr<stmt>> statements;
+
+            statements.push_back(initializer);
+            statements.push_back(body);
+            body = std::make_shared<block_stmt>(statements);
+        }
+
+        return body;
+    }
+
     std::shared_ptr<expr> parser::expression()
     {
         return assignment();
@@ -128,7 +187,7 @@ namespace lox
             auto equals = previous();
             auto value = assignment();
 
-            variable_expr* var_exp = dynamic_cast<variable_expr*>(value.get());
+            variable_expr* var_exp = dynamic_cast<variable_expr*>(exp.get());
             if (var_exp){
                 auto name = var_exp->m_name;
                 return std::make_shared<assign_expr>(name, value);
