@@ -15,16 +15,35 @@ namespace lox
             std::vector<std::shared_ptr<stmt>> parse();
 
         private:
+            // declaration -> var_declaration | statement
+            std::shared_ptr<stmt> declaration();
+            // var_declaration -> "var" IDENTIFER ( "=" expression )? ";"
+            std::shared_ptr<stmt> var_declaration();
 
-            // statement -> expr_stmt | print_stmt
+            // statement -> expr_stmt | print_statement | block | if_statement | while_statement
             std::shared_ptr<stmt> statement();
+            // block -> "{" declaration* "}"
+            std::vector<std::shared_ptr<stmt>> block();
+            // if_statement -> "if" "(" expression ")" statement
+            //                  ( "else" statment )?
+            std::shared_ptr<stmt> if_statement();
             // expr_statement -> expression ";"
             std::shared_ptr<stmt> expr_statement();
             // print_statement -> "print" expression ";"
             std::shared_ptr<stmt> print_statement();
+            // while_statement -> "while" "(" expression ")" statement
+            std::shared_ptr<stmt> while_statement();
 
-            // expression -> equality
+            // expression -> assignment
             std::shared_ptr<expr> expression();
+            // assignment -> IDENTIFIER "=" assignment | logic_or
+            std::shared_ptr<expr> assignment();
+            
+            // logic_or -> logic_and ( "or" logic_and )*
+            std::shared_ptr<expr> logic_or();
+            // logic_and -> equality ( "and" equality )*
+            std::shared_ptr<expr> logic_and();
+
             // equality -> comparison ( ("!=" | "==") comparison )*
             std::shared_ptr<expr> equality();
             // comparison -> term ( ( ">" | ">= " | "<" | "<=" ) term )*

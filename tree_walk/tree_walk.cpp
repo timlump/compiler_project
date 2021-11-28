@@ -16,19 +16,25 @@ namespace lox {
     interpreter* tree_walk::m_interpreter = nullptr;
 
     void tree_walk::run(std::string source) {
-        scanner scanner(source);
-        auto tokens = scanner.scan_tokens();
-        parser psr(tokens);
-        auto statements = psr.parse();
+        try {
+            scanner scanner(source);
+            auto tokens = scanner.scan_tokens();
+            parser psr(tokens);
+            auto statements = psr.parse();
 
-        if (tree_walk::had_error){
-            return;
+            if (tree_walk::had_error){
+                return;
+            }
+            
+            if (m_interpreter == nullptr) {
+                m_interpreter = new interpreter();
+            }
+            m_interpreter->interpret(statements);
         }
-        
-        if (m_interpreter == nullptr) {
-            m_interpreter = new interpreter();
+        catch (const std::runtime_error& e)
+        {
+            std::cerr << e.what() << std::endl;
         }
-        m_interpreter->interpret(statements);
     }
 
     void tree_walk::run_prompt() {

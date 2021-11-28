@@ -1,8 +1,8 @@
 CXX = g++
 CXX_FLAGS = -std=c++2a -Wall -g -Wno-psabi
 
-lox: main.o tree_walk.o scanner.o parser.o token.o interpreter.o
-	$(CXX) $(CXX_FLAGS) -o lox main.o tree_walk.o scanner.o parser.o token.o interpreter.o
+lox: main.o tree_walk.o scanner.o parser.o token.o interpreter.o environment.o
+	$(CXX) $(CXX_FLAGS) -o lox main.o tree_walk.o scanner.o parser.o token.o interpreter.o environment.o
 
 main.o: main.cpp
 	$(CXX) $(CXX_FLAGS) -c main.cpp
@@ -21,6 +21,9 @@ token.o: token.cpp
 
 interpreter.o: interpreter.cpp
 	$(CXX) $(CXX_FLAGS) -c interpreter.cpp
+
+environment.o: environment.cpp
+	$(CXX) $(CXX_FLAGS) -c environment.cpp
 
 ast_printer: ast_printer_main.cpp
 	$(CXX) $(CXX_FLAGS) -o ast_printer ast_printer_main.cpp

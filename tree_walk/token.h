@@ -26,6 +26,7 @@ namespace lox {
     class object
     {
         public:
+            object();
             object(std::nullptr_t);
             object(bool value);
             object(double value);
@@ -36,6 +37,8 @@ namespace lox {
             bool m_boolean_value;
             double m_number_value;
             std::string m_text_value;
+
+            operator bool() const;
 
             object operator!();
 

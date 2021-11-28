@@ -9,6 +9,11 @@ namespace lox
     const std::string MUST_BE_NUMBERS_OR_STRINGS_MSG = "Operands must be both numbers or both strings.";
     const std::string UNSUPPORTED_MSG = "Unknown operand error";
 
+    object::object()
+    {
+        m_type = object_type::nil;
+    }
+
     object::object(std::nullptr_t)
     {
         m_type = object_type::nil;
@@ -30,6 +35,19 @@ namespace lox
     {
         m_type = object_type::text;
         m_text_value = value;
+    }
+
+    // in the crafting interpreters book this is the equivalent of the isTruthy function
+    object::operator bool() const
+    {
+        if (m_type == object_type::nil) {
+            return false;
+        }
+        else if (m_type == object_type::boolean) {
+            return m_boolean_value;
+        }
+
+        return true;
     }
 
     object object::operator!()

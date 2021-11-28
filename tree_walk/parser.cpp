@@ -12,20 +12,85 @@ namespace lox
     {
         std::vector<std::shared_ptr<stmt>> statements;
         while (not is_at_end()) {
-            statements.push_back(statement());
+            statements.push_back(declaration());
         }
         return statements;
     }
 
+    std::shared_ptr<stmt> parser::declaration()
+    {
+        try {
+            if (match({token_type::VAR})) {
+                return var_declaration();
+            }
+            return statement();
+        }
+        catch (const std::runtime_error& e){
+            synchronize();
+            return nullptr;
+        }
+    }
+
+    std::shared_ptr<stmt> parser::var_declaration()
+    {
+        auto name = consume(token_type::IDENTIFIER, "Expect variable name.");
+        std::shared_ptr<expr> initializer = nullptr;
+        if (match({token_type::EQUAL})) {
+            initializer = expression();
+        }
+
+        consume(token_type::SEMICOLON, "Expect ';' after variable declaration.");
+        return std::make_shared<var_stmt>(name, initializer);
+    }
+
     std::shared_ptr<stmt> parser::statement()
     {
+        if (match({token_type::IF})) {
+            return if_statement();
+        }
+
         if (match({token_type::PRINT})) {
             return print_statement();
         }
 
+        if (match({token_type::WHILE})) {
+            return while_statement();
+        }
+
+        if (match({token_type::LEFT_BRACE})) {
+            return std::make_shared<block_stmt>(block());
+        }
+
         return expr_statement();
     }
+
+    std::vector<std::shared_ptr<stmt>> parser::block()
+    {
+        std::vector<std::shared_ptr<stmt>> statements;
+
+        while (not check(token_type::RIGHT_BRACE) && not is_at_end()) {
+            statements.push_back(declaration());
+        }
+
+        consume(token_type::RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
     
+    std::shared_ptr<stmt> parser::if_statement()
+    {
+        consume(token_type::LEFT_PAREN, "Expect '(' after 'if'.");
+        auto condition = expression();
+        consume(token_type::RIGHT_PAREN, "Expect ')' after if condition.");
+
+        auto then_branch = statement();
+        std::shared_ptr<stmt> else_branch = nullptr;
+        if (match({token_type::ELSE})) {
+            else_branch = statement();
+        }
+
+        return std::make_shared<if_stmt>(condition, then_branch, else_branch);
+    }
+
     std::shared_ptr<stmt> parser::expr_statement()
     {
         auto exp = expression();
@@ -40,9 +105,65 @@ namespace lox
         return std::make_shared<print_stmt>(exp);
     }
 
+    std::shared_ptr<stmt> parser::while_statement()
+    {
+        consume(token_type::LEFT_PAREN, "Expect '(' adter 'while'.");
+        auto condition = expression();
+        consume(token_type::RIGHT_PAREN, "Expect ')' after condition.");
+        auto body = statement();
+
+        return std::make_shared<while_stmt>(condition, body);
+    }
+
     std::shared_ptr<expr> parser::expression()
     {
-        return equality();
+        return assignment();
+    }
+
+    std::shared_ptr<expr> parser::assignment()
+    {
+        auto exp = logic_or();
+
+        if (match({token_type::EQUAL})) {
+            auto equals = previous();
+            auto value = assignment();
+
+            variable_expr* var_exp = dynamic_cast<variable_expr*>(value.get());
+            if (var_exp){
+                auto name = var_exp->m_name;
+                return std::make_shared<assign_expr>(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return exp;
+    }
+
+    std::shared_ptr<expr> parser::logic_or()
+    {
+        auto expr = logic_and();
+
+        while (match({token_type::OR})) {
+            auto op = previous();
+            auto right = logic_and();
+            expr = std::make_shared<logical_expr>(expr, op, right);
+        }
+
+        return expr;
+    }
+
+    std::shared_ptr<expr> parser::logic_and()
+    {
+        auto expr = equality();
+
+        while (match({token_type::AND})) {
+            auto op = previous();
+            auto right = equality();
+            expr = std::make_shared<logical_expr>(expr, op, right);
+        }
+
+        return expr;
     }
 
     std::shared_ptr<expr> parser::equality()
@@ -119,6 +240,10 @@ namespace lox
 
         if (match({token_type::NUMBER, token_type::STRING})) {
             return std::make_shared<literal_expr>(previous().value);
+        }
+
+        if (match({token_type::IDENTIFIER})) {
+            return std::make_shared<variable_expr>(previous());
         }
 
         if (match({token_type::LEFT_PAREN})) {
