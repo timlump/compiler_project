@@ -12,6 +12,7 @@ namespace lox
     class block_stmt;
     class if_stmt;
     class while_stmt;
+    class function_stmt;
 
     class stmt_visitor
     {
@@ -22,6 +23,7 @@ namespace lox
             virtual void visit_block(block_stmt*) = 0;
             virtual void visit_if(if_stmt*) = 0;
             virtual void visit_while(while_stmt*) = 0;
+            virtual void visit_function(function_stmt*) = 0;
     };
 
     class stmt
@@ -131,5 +133,25 @@ namespace lox
 
             std::shared_ptr<expr> m_condition;
             std::shared_ptr<stmt> m_body;
+    };
+
+    class function_stmt : public stmt
+    {
+        public:
+            function_stmt(token name, std::vector<token> params, std::vector<std::shared_ptr<stmt>> body)
+            {
+                m_name = name;
+                m_params = params;
+                m_body = body;
+            }
+
+            void accept(stmt_visitor* visitor) override
+            {
+                visitor->visit_function(this);
+            }
+
+            token m_name;
+            std::vector<token> m_params;
+            std::vector<std::shared_ptr<stmt>> m_body;
     };
 }

@@ -1,4 +1,5 @@
-#include "interpeter.h"
+#include "interpreter.h"
+#include "native_funcs.h"
 #include "tree_walk.h"
 #include <iostream>
 
@@ -6,7 +7,10 @@ namespace lox
 {
     interpreter::interpreter()
     {
-        m_environment = std::make_shared<environment>();
+        m_globals = std::make_shared<environment>();
+        m_environment = m_globals;
+
+        m_globals->define("clock", object(std::make_shared<clock>()));
     }
 
     object interpreter::visit_assign(assign_expr* expr)
@@ -105,6 +109,32 @@ namespace lox
         return evaluate(expr->m_right.get());
     }
 
+    object interpreter::visit_call(call_expr* exp)
+    {
+        auto callee = evaluate(exp->m_callee.get());
+
+        std::vector<object> arguments;
+        for (auto argument : exp->m_arguments) {
+            arguments.push_back(evaluate(argument.get()));
+        }
+
+        if (callee.m_type != object::object_type::callable) {
+            throw lox_runtime_exception(exp->m_paren,
+                "Can only call functions and classes.");
+        }
+
+        auto func = callee.m_callable;
+        if (static_cast<int>(arguments.size()) != func->arity()) {
+            throw lox_runtime_exception(exp->m_paren,
+            "Expected " +
+            std::to_string(func->arity()) +
+            " arguments but got " +
+            std::to_string(arguments.size()) + ".");
+        }
+
+        return func->call(this, arguments);
+    }
+
     void interpreter::visit_print(print_stmt* statement)
     {
         auto value = evaluate(statement->m_expression.get());
@@ -149,6 +179,11 @@ namespace lox
         while (evaluate(statement->m_condition.get())) {
             execute(statement->m_body.get());
         }
+    }
+
+    void interpreter::visit_function(function_stmt* statement)
+    {
+        // todo
     }
 
     void interpreter::interpret(std::vector<std::shared_ptr<stmt>> statements)

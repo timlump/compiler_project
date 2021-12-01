@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 #include "token.h"
 
 namespace lox {
@@ -11,6 +12,7 @@ namespace lox {
     class variable_expr;
     class unary_expr;
     class logical_expr;
+    class call_expr;
 
     class expr_visitor
     {
@@ -22,6 +24,7 @@ namespace lox {
             virtual object visit_variable(variable_expr*) = 0;
             virtual object visit_unary(unary_expr*) = 0;
             virtual object visit_logical(logical_expr*) = 0;
+            virtual object visit_call(call_expr*) = 0;
     };
 
     class expr
@@ -33,16 +36,9 @@ namespace lox {
     class assign_expr : public expr
     {
         public:
-            assign_expr(token name, std::shared_ptr<expr> value)
-            {
-                m_name = name;
-                m_value = value;
-            }
+            assign_expr(token name, std::shared_ptr<expr> value);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_assign(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             token m_name;
             std::shared_ptr<expr> m_value;
@@ -51,17 +47,9 @@ namespace lox {
     class binary_expr : public expr
     {
         public:
-            binary_expr(std::shared_ptr<expr> left, token op, std::shared_ptr<expr> right)
-            {
-                m_left = left;
-                m_op = op;
-                m_right = right;
-            }
+            binary_expr(std::shared_ptr<expr> left, token op, std::shared_ptr<expr> right);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_binary(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             std::shared_ptr<expr> m_left;
             token m_op;
@@ -71,14 +59,9 @@ namespace lox {
     class grouping_expr : public expr
     {
         public:
-            grouping_expr(std::shared_ptr<expr> expression) {
-                m_expression = expression;
-            }
+            grouping_expr(std::shared_ptr<expr> expression);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_grouping(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             std::shared_ptr<expr> m_expression;
     };
@@ -86,15 +69,9 @@ namespace lox {
     class literal_expr : public expr
     {
         public:
-            literal_expr(object value) 
-            {
-                m_value = value;
-            }
+            literal_expr(object value);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_literal(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             object m_value = object(nullptr);
     };
@@ -102,15 +79,9 @@ namespace lox {
     class variable_expr : public expr
     {
         public:
-            variable_expr(token token)
-            {
-                m_name = token;
-            }
+            variable_expr(token token);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_variable(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             token m_name;
     };
@@ -118,16 +89,9 @@ namespace lox {
     class unary_expr : public expr
     {
         public:
-            unary_expr(token op, std::shared_ptr<expr> right)
-            {
-                m_op = op;
-                m_right = right;
-            }
+            unary_expr(token op, std::shared_ptr<expr> right);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_unary(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             token m_op;
             std::shared_ptr<expr> m_right;
@@ -136,20 +100,25 @@ namespace lox {
     class logical_expr : public expr
     {
         public:
-            logical_expr(std::shared_ptr<expr> left, token op, std::shared_ptr<expr> right)
-            {
-                m_left = left;
-                m_op = op;
-                m_right = right;
-            }
+            logical_expr(std::shared_ptr<expr> left, token op, std::shared_ptr<expr> right);
 
-            object accept(expr_visitor* visitor) override
-            {
-                return visitor->visit_logical(this);
-            }
+            object accept(expr_visitor* visitor) override;
 
             std::shared_ptr<expr> m_left;
             token m_op;
             std::shared_ptr<expr> m_right;
+    };
+
+    class call_expr : public expr
+    {
+        public:
+            call_expr(std::shared_ptr<expr> callee, token paren,
+                      std::vector<std::shared_ptr<expr>> arguments);
+
+            object accept(expr_visitor* visitor) override;
+
+            std::shared_ptr<expr> m_callee;
+            token m_paren;
+            std::vector<std::shared_ptr<expr>> m_arguments;
     };
 }

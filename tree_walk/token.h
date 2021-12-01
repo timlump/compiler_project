@@ -1,9 +1,11 @@
 #pragma once
-
+#include <memory>
 #include <string>
 #include <exception>
 
 namespace lox {
+    class lox_callable;
+
     enum class token_type {
         // single-character tokens
         LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
@@ -31,12 +33,14 @@ namespace lox {
             object(bool value);
             object(double value);
             object(std::string value);
+            object(std::shared_ptr<lox_callable> callable);
 
-            enum class object_type {nil, boolean, number, text} m_type = object_type::nil;
+            enum class object_type {nil, boolean, number, text, callable} m_type = object_type::nil;
 
             bool m_boolean_value;
             double m_number_value;
             std::string m_text_value;
+            std::shared_ptr<lox_callable> m_callable;
 
             operator bool() const;
 

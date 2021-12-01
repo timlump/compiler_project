@@ -18,6 +18,7 @@ namespace lox
             object visit_variable(variable_expr* exp) override;
             object visit_unary(unary_expr* exp) override;
             object visit_logical(logical_expr* exp) override;
+            object visit_call(call_expr* exp) override;
 
             void visit_print(print_stmt* statement);
             void visit_expression(expression_stmt* statement) override;
@@ -25,10 +26,12 @@ namespace lox
             void visit_block(block_stmt* statement) override;
             void visit_if(if_stmt* statement) override;
             void visit_while(while_stmt* statement) override;
+            void visit_function(function_stmt* statement) override;
 
             void interpret(std::vector<std::shared_ptr<stmt>> statements);
 
         private:
+            std::shared_ptr<environment> m_globals = nullptr;
             std::shared_ptr<environment> m_environment = nullptr;
             object evaluate(expr* expr);
             void execute(stmt* statement);

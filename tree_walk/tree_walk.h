@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include "token.h"
-#include "interpeter.h"
+#include "interpreter.h"
 
 namespace lox {
     class tree_walk {

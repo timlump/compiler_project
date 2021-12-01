@@ -15,10 +15,15 @@ namespace lox
             std::vector<std::shared_ptr<stmt>> parse();
 
         private:
-            // declaration -> var_declaration | statement
+            // declaration -> var_declaration | statement | function_declaration
             std::shared_ptr<stmt> declaration();
             // var_declaration -> "var" IDENTIFER ( "=" expression )? ";"
             std::shared_ptr<stmt> var_declaration();
+
+            // function_declaration -> "fun" function
+            // function -> IDENTIFIER "(" parameters? ")" block
+            // parameters -> IDENTIFIER ( "," IDENTIFIER )*
+            std::shared_ptr<stmt> function(std::string kind);
 
             // statement -> expr_stmt | print_statement |
             //              block | if_statement | while_statement |
@@ -59,8 +64,12 @@ namespace lox
             std::shared_ptr<expr> term();
             // factor -> unary ( ( "/" | "*" ) unary )*
             std::shared_ptr<expr> factor();
-            // unary -> ( "!" | "-" ) unary | primary
+            // unary -> ( "!" | "-" ) unary | call
             std::shared_ptr<expr> unary();
+            // call -> primary ( "(" arguments? ")")*
+            std::shared_ptr<expr> call();
+            // arguments/finish_call -> expression ( "," expression )*
+            std::shared_ptr<expr> finish_call(std::shared_ptr<expr> callee);
             // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
             std::shared_ptr<expr> primary();
 

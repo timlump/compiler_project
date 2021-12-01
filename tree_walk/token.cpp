@@ -1,6 +1,7 @@
 #include "token.h"
 #include <iostream>
 #include <sstream>
+#include "lox_callable.h"
 
 namespace lox
 {
@@ -35,6 +36,12 @@ namespace lox
     {
         m_type = object_type::text;
         m_text_value = value;
+    }
+
+    object::object(std::shared_ptr<lox_callable> callable)
+    {
+        m_type = object_type::callable;
+        m_callable = callable;
     }
 
     // in the crafting interpreters book this is the equivalent of the isTruthy function

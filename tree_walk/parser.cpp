@@ -20,6 +20,9 @@ namespace lox
     std::shared_ptr<stmt> parser::declaration()
     {
         try {
+            if (match({token_type::FUN})) {
+                return function("function");
+            }
             if (match({token_type::VAR})) {
                 return var_declaration();
             }
@@ -41,6 +44,28 @@ namespace lox
 
         consume(token_type::SEMICOLON, "Expect ';' after variable declaration.");
         return std::make_shared<var_stmt>(name, initializer);
+    }
+
+    std::shared_ptr<stmt> parser::function(std::string kind) {
+        auto name = consume(token_type::IDENTIFIER, "Expect " + kind + " name.");
+
+        consume(token_type::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        std::vector<token> parameters;
+        if (not check(token_type::RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Can't have more than 255 parameters");
+                }
+                parameters.push_back(
+                    consume(token_type::IDENTIFIER, "Expect parameter name")
+                );
+            }
+            while(match({token_type::COMMA}));
+        }
+        consume(token_type::RIGHT_PAREN, "Expect ')' after parameters.");
+        consume(token_type::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        auto body = block();
+        return std::make_shared<function_stmt>(name, parameters, body);
     }
 
     std::shared_ptr<stmt> parser::statement()
@@ -277,7 +302,42 @@ namespace lox
             return std::make_shared<unary_expr>(op,right);
         }
 
-        return primary();
+        return call();
+    }
+
+    std::shared_ptr<expr> parser::call()
+    {
+        auto expr = primary();
+
+        while (true) {
+            if (match({token_type::LEFT_PAREN})) {
+                expr = finish_call(expr);
+            } 
+            else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    std::shared_ptr<expr> parser::finish_call(std::shared_ptr<expr> callee)
+    {
+        std::vector<std::shared_ptr<expr>> arguments;
+        if (not check(token_type::RIGHT_PAREN)) {
+            do {
+                if (arguments.size() >= 255) {
+                    error(peek(), "Can't have more than 255 arguments.");        
+                }
+                arguments.push_back(expression());
+            }
+            while (match({token_type::COMMA}));
+        }
+
+        auto paren = consume(token_type::RIGHT_PAREN,
+                            "Expect ')' after arguments.");
+
+        return std::make_shared<call_expr>(callee, paren, arguments);
     }
 
     std::shared_ptr<expr> parser::primary()
